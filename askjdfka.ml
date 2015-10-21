@@ -12,6 +12,8 @@ rule token = parse
 {
   (* Get words from stdin *)
   let lexbuf = Lexing.from_channel stdin in
+
+
   let wordlist =
     let rec next l = match token lexbuf with
                      EOF -> l
@@ -19,30 +21,27 @@ rule token = parse
      in next []
   in
 
+  (* Initialize emty string map *)
+  let map = StringMap.empty
+
   (* Create String map out of list with the count for each word *)
   let map =
-    let rec count wordlist map =
-      match wordlist with
-      | [] -> map     (* wordlist is empty, so just return map *)
-      (* check to see if the headlist is already in the map *)
-      | hd::tl -> count tl (StringMap.add hd
-                 (* if it is, just increment the counter already there *)
-                 (if StringMap.mem hd map then (StringMap.find hd map) + 1
-                 (* otherwise set counter to 1 *)
-                  else 1)
-             map)
+    let rec count wordlist map = match wordlist with
+      | [] -> map
+      | hd::tl -> count tl (StringMap.add hd (if StringMap.mem hd map then (StringMap.find hd map) + 1 else 1) map)
     in count wordlist StringMap.empty
   in
 
-  (* This folding function takes the map and converts to a list of word, count pairs *)
-  let foldingFunction =
-    (fun word count x -> (count, word) :: x)
-  in
+
+
+
+
 
   (* Use StringMap.fold to convert the map to
     list of (count, word) pairs*)
+
   let wordcounts =
-    StringMap.fold foldingFunction map []
+    StringMap.fold (fun word num x -> (num, word) :: x) map []
   in
 
   (* Sort the pairs using List.sort
@@ -54,9 +53,7 @@ rule token = parse
 
   (* Print the list with List.iter
     the list contains tuples ()*)
-  let print list =
-    List.iter (fun item -> print_endline(string_of_int (fst item) ^ " " ^ snd item)) list
-  in
-  print wordcounts;;
+
+  List.iter (fun word -> print_endline(string_of_int (fst word) ^ " " ^ snd word)) wordcounts;;
 
 }

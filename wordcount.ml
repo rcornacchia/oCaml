@@ -1,6 +1,9 @@
-# 2 "wordcount.mll"
-  type token = EOF | Word of string 
-# 4 "wordcount.ml"
+# 1 "wordcount.mll"
+ 
+  module StringMap = Map.Make (String)
+  type token = EOF | Word of string
+
+# 7 "wordcount.ml"
 let __ocaml_lex_tables = {
   Lexing.lex_base = 
    "\000\000\253\255\058\000\255\255";
@@ -109,39 +112,74 @@ let rec token lexbuf =
 and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 6 "wordcount.mll"
+# 8 "wordcount.mll"
          ( EOF )
-# 115 "wordcount.ml"
+# 118 "wordcount.ml"
 
   | 1 ->
 let
-# 7 "wordcount.mll"
+# 9 "wordcount.mll"
                            word
-# 121 "wordcount.ml"
+# 124 "wordcount.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_curr_pos in
-# 7 "wordcount.mll"
+# 9 "wordcount.mll"
                                 ( Word(word) )
-# 125 "wordcount.ml"
+# 128 "wordcount.ml"
 
   | 2 ->
-# 8 "wordcount.mll"
+# 10 "wordcount.mll"
        ( token lexbuf )
-# 130 "wordcount.ml"
+# 133 "wordcount.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; 
       __ocaml_lex_token_rec lexbuf __ocaml_lex_state
 
 ;;
 
-# 10 "wordcount.mll"
+# 12 "wordcount.mll"
  
-    let lexbuf = Lexing.from_channel stdin in
-    let wordlist =
+  (* Get words from stdin *)
+  let lexbuf = Lexing.from_channel stdin in
+  let wordlist =
     let rec next l = match token lexbuf with
-       EOF -> l
-       | Word(s) -> next (s :: l)
-       in next []
-       in
-      List.iter print_endline wordlist
+                     EOF -> l
+                     | Word(s) -> next (s :: l)
+     in next []
+  in
 
-# 148 "wordcount.ml"
+  (* Create String map out of list with the count for each word *)
+  let map =
+    let rec count wordlist map =
+      match wordlist with
+      | [] -> map
+      | hd::tl -> count tl (StringMap.add hd
+                ( if StringMap.mem hd map then (StringMap.find hd map) + 1
+                  else 1) map )
+    in count wordlist StringMap.empty
+  in
+
+  (* Use StringMap.fold to convert the map to
+    list of (count, word) pairs*)
+  let foldingFunction =
+    (fun word count x -> (count, word) :: x)
+  in
+  let wordcounts =
+    StringMap.fold foldingFunction map []
+  in
+
+  (* Sort the pairs using List.sort
+     This code was given *)
+  let wordcounts =
+    List.sort (fun (c1, _) (c2, _) ->
+               Pervasives.compare c2 c1)
+  wordcounts in
+
+  (* Print the list with List.iter
+    the list contains tuples ()*)
+  let print list =
+    List.iter (fun item -> print_endline(string_of_int (fst item) ^ " " ^ snd item)) list
+  in
+  print wordcounts;;
+
+
+# 186 "wordcount.ml"

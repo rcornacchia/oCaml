@@ -1,11 +1,11 @@
 
 %{ open Ast %}
 
-%token PLUS MINUS TIMES DIVIDE EQUALS COMMA EOF
+%token PLUS MINUS TIMES DIVIDE ASSIGN COMMA EOF
 %token <int> LITERAL VARIABLE
 
 %left COMMA
-%right EQUALS
+%right ASSIGN
 %left PLUS MINUS
 %left TIMES DIVIDE
 
@@ -20,10 +20,6 @@ expr:
 | expr TIMES  expr     { Binop($1, Mul, $3) }
 | expr DIVIDE expr     { Binop($1, Div, $3) }
 | LITERAL              { Lit($1) }
-
-/*(* The following cases were not in the lecture slides
-    handles commas, variable assignment, and
-    calls for the variable *)*/
-| expr COMMA expr      { Seq($1, $3) }
 | VARIABLE             { Var($1) }
-| VARIABLE EQUALS expr { Asn($1, $3) }
+| VARIABLE ASSIGN expr { Asn($1, $3) }
+| expr COMMA expr      { Seq($1, $3) }

@@ -1,4 +1,6 @@
-ocamlc -o program hw1.ml
+ocamllex wordcount.mll
 echo " "
-./program
+ocamlc -o wordcount wordcount.ml
+echo " "
+./wordcount < wordcount.mll
 echo " "
